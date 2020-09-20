@@ -1,0 +1,51 @@
+input, select, .select2-container {
+	max-width: 100%;
+}
+.woocommerce table.form-table .titledesc .select2-container {
+	min-width: unset !important;
+}
+.page-title-action {
+	display: none;
+}
+#post-body-content {
+	display: none;
+}
+#postbox-container-1 #submitdiv {
+	display: none;
+}
+.ghn-list-items {
+	list-style: none;
+	max-height: 300px;
+	overflow-y: scroll;
+}
+.ghn-list-items .ghn-list-item,
+.ghn-list-items .ghn-list-item-no {
+	border: 1px solid #b2b2b2;
+	border-radius: 10px;
+	margin: 0;
+	padding: 5px;
+}
+.ghn-list-items .ghn-list-item + .ghn-list-item {
+	margin-top: 5px;
+}
+.ghn-list-items .ghn-list-item.ghn-list-item-active a,
+.ghn-list-items .ghn-list-item.ghn-list-item-active strong {
+	color: #f26522;
+}
+.ghn-list-items-station-masked {
+	color: #f26522;
+	height: unset;
+	overflow: unset;
+}
+.ghn-list-items-fee {
+	height: unset;
+	overflow: unset;
+}
+.ghn-list-items-fee .ghn-list-item {
+	display: inline-block;
+	margin: 0 1%;
+	width: 27%;
+}
+.ghn-list-items-fee .ghn-list-item + .ghn-list-item {
+	margin-top: 0;
+}

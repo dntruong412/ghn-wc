@@ -1,0 +1,15 @@
+.ghn-list-stores {
+	list-style: none;
+}
+.ghn-list-stores .ghn-list-store-item {	
+	border: 1px solid #b2b2b2;	
+	border-radius: 10px;
+	display: inline-block;
+	margin: 5px;
+	padding: 5px;
+}
+.ghn-list-stores .ghn-list-store-item.ghn-list-store-item-active {	
+	background-color: #007236;
+	border-color: #007236;
+	color: #FFF;
+}
