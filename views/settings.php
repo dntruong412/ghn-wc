@@ -51,7 +51,7 @@ $count_wards = count($ghn_wards); ?>
 					</td>
 				</tr>
 				
-				<tr valign="top">
+				<tr valign="top" style="display: none;">
 					<th scope="row" class="titledesc">
 						<label for="ghn_env">URL Webhook</label>
 					</th>
