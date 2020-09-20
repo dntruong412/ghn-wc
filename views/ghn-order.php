@@ -490,28 +490,51 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 		
 		<!-- service_id -->
 		<ul class="ghn-list-items ghn-list-items-fee">
-		<?php if (@$ghn_order_detail['service_id'] > 0) {
+		<?php
 			$servicefees = $this->ghn_get_servicefees(
 				$ghn, 
 				$ghn_options,
 				array(
-					'to_district_id' => @$ghn_order_detail['to_district_id'],
-					'to_ward_code' => @$ghn_order_detail['to_ward_code'],
-					'height' => @$ghn_order_detail['height'],
-					'length' => @$ghn_order_detail['length'],
-					'weight' => @$ghn_order_detail['weight'],
-					'width' => @$ghn_order_detail['width'],
-					'insurance_fee' => @$ghn_order_detail['insurance_value'],
-					'coupon' => @$ghn_order_detail['coupon'],
+					'to_district_id' => @$ghn_order_detail['to_district_id'] > 0 ? @$ghn_order_detail['to_district_id'] : $_billing_district,
+					'to_ward_code'   => @$ghn_order_detail['to_ward_code'] > 0 ? @$ghn_order_detail['to_ward_code'] : $_billing_ward,
+					'height'         => @$ghn_order_detail['height'] > 0 ? @$ghn_order_detail['height'] : 10,
+					'length'         => @$ghn_order_detail['length'] > 0 ? @$ghn_order_detail['length'] : 10,
+					'weight'         => @$ghn_order_detail['weight'] > 0 ? @$ghn_order_detail['weight'] : 1000,
+					'width'          => @$ghn_order_detail['width'] > 0 ? @$ghn_order_detail['width'] : 10,
+					'insurance_fee'  => @$ghn_order_detail['insurance_value'],
+					'coupon'         => @$ghn_order_detail['coupon'],
 				)
 			);
-			
+
+			usort($servicefees, function($a, $b) {
+				$feeA = array_sum(array_values((array)$a['data_fee']));
+				$feeB = array_sum(array_values((array)$b['data_fee']));
+
+				if ($feeA == $feeB) {
+			        return 0;
+			    }
+			    return ($feeA < $feeB) ? -1 : 1;
+			});
+
+			$hasOrderFee = false;
+			foreach ($servicefees as &$fee) {
+				if ($fee['service_id'] == @$ghn_order_detail['service_id']) {
+					$fee['isSelected'] = true;
+					$hasOrderFee = true;
+					break;
+				}
+			}
+
+			if (!$hasOrderFee) {
+				$servicefees[0]['isSelected'] = true;
+			}
+
 			for ($i = 0; $i < count($servicefees); $i++) { ?>
 				<li class="ghn-list-item" data-service_id="<?php echo @$servicefees[$i]['service_id']; ?>" data-service_type_id="<?php echo @$servicefees[$i]['service_type_id']; ?>" data-total="<?php echo @$servicefees[$i]['data_fee']->total; ?>" data-service_fee="<?php echo @$servicefees[$i]['data_fee']->service_fee; ?>">
 					<strong style="font-size: 1.2em;">
 						<label>
 						<?php if ($ghn_status_chk->editable('service_id')) { ?>	
-							<input type="radio" name="form_service" value="<?php echo @$servicefees[$i]['service_id']; ?>" <?php echo (@$ghn_order_detail['service_id'] == @$servicefees[$i]['service_id']) ? 'checked' : ''; ?> /> 
+							<input type="radio" name="form_service" value="<?php echo @$servicefees[$i]['service_id']; ?>" <?php echo @$servicefees[$i]['isSelected'] == true ? 'checked' : ''; ?> /> 
 						<?php } else { ?>
 							<input type="radio" name="form_service" value="<?php echo @$servicefees[$i]['service_id']; ?>" <?php echo (@$ghn_order_detail['service_id'] == @$servicefees[$i]['service_id']) ? 'checked' : ''; ?> disabled /> 
 						<?php } ?>
@@ -522,7 +545,7 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 					</strong>
 				</li>
 			<?php }
-		} ?>
+		?>
 		</ul>
 		<!-- service_id -->
 				
@@ -580,14 +603,23 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 					</td>
 					<td scope="row" class="titledesc" style="vertical-align: text-top;">
 					<!-- note -->
+						<?php
+							$currentNote = @$ghn_order_detail['note'];
+						?>
 						<p>
 							<label for="note">Ghi chú</label>
 						</p>						
 						<p>
 						<?php if ($ghn_status_chk->editable('note')) { ?>	
-							<textarea name="note" placeholder="Nhập ghi chú"><?php echo esc_attr(@$ghn_order_detail['note']); ?></textarea>
+							<?php
+								if (empty($currentNote)) {
+									$currentPost = get_post($param_wc_order_id);
+									$currentNote = $currentPost->post_excerpt;
+								}
+							?>
+							<textarea name="note" placeholder="Nhập ghi chú"><?php echo esc_attr($currentNote); ?></textarea>
 						<?php } else { ?>
-							<textarea readonly="readonly"><?php echo esc_attr(@$ghn_order_detail['note']); ?></textarea>
+							<textarea readonly="readonly"><?php echo esc_attr($currentNote); ?></textarea>
 						<?php } ?>
 						</p>
 					<!-- note -->
@@ -623,19 +655,23 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 		<a href="javascript:;" class="button" id="ghn-print" style="float: right;" data-id="<?php echo $post_id; ?>">In đơn hàng</a>
 	<?php } ?>
 	</div>
-	
+
 	<script>
 	jQuery(document).ready(function($) {
-		if ($('[name=coupon]').length) 
+		if ($('[name=coupon]').length) {
 			$('[name=coupon]').val(<?php echo '"'.@$ghn_order_detail['coupon'].'"'; ?>);
+		}
 		
-		if ($('#view_coupon').length) 
+		if ($('#view_coupon').length) {
 			$('#view_coupon').val(<?php echo '"'.@$ghn_order_detail['coupon'].'"'; ?>);
+		}
 		
-		if ($('[name=payment_type_id]').length) 
-			$('[name=payment_type_id]').val(<?php echo '"'.@$ghn_order_detail['payment_type_id'].'"'; ?>);
+		if ($('[name=payment_type_id]').length) {
+			$('[name=payment_type_id]').val(<?php echo @$ghn_order_detail['payment_type_id'] != null ? @$ghn_order_detail['payment_type_id'] : 2; ?>);
+		}
 		
-		if ($('#view_payment_type_id').length) 
+		if ($('#view_payment_type_id').length) {
 			$('#view_payment_type_id').val(<?php echo '"'.((@$ghn_order_detail['payment_type_id'] == 1) ? 'Bên gửi trả phí' : 'Bên nhận trả phí').'"'; ?>);
+		}
 	});
 	</script>

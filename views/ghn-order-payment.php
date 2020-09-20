@@ -43,7 +43,7 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 							<label for="payment_type_id">Tuỳ chọn thanh toán</label>
 						</p>						
 						<p>
-						<?php if ($ghn_status_chk->editable('payment_type_id')) { ?>	
+						<?php if ($ghn_status_chk->editable('payment_type_id')) { ?>
 							<select name="payment_type_id" class="wc-enhanced-select" style="max-width: 100%;">
 								<option value="1" <?php echo (@$ghn_order_detail['payment_type_id'] == 1) ? 'selected' : ''; ?>>Bên gửi trả phí</option>
 								<option value="2" <?php echo (@$ghn_order_detail['payment_type_id'] == 2) ? 'selected' : ''; ?>>Bên nhận trả phí</option>
@@ -62,7 +62,13 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 							<label for="">Chi phí</label>
 						</p>
 						<div class="fee-result">	
-						<?php echo $this->get_order_fees(@$ghn_order_fee['detail']); ?>
+						<?php
+							if(@$ghn_order_fee['detail'] != null) {
+								echo $this->get_order_fees(@$ghn_order_fee['detail']);
+							} else {
+								echo "<div id='fee-result-content'></div>";
+							}
+						?>
 						</div>
 					</td>
 				</tr>				

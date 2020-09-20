@@ -92,6 +92,10 @@ jQuery(document).ready(function($) {
 	$('body').on('click', '[name=form_service]', function() {
 		return ghn_calc_total();
 	});
+
+	if($('#fee-result-content').length > 0) {
+		ghn_calc_total();
+	}
 	
 	function ghn_calc_fee() {
 		var d = parseInt($('[name=length]').val()) || 0;

@@ -7,10 +7,12 @@ if (!class_exists('GHN_API')) {
 		* Class Construct
 		*/
 		public function __construct() {	
+			$this->api_local = 'https://dev-online-gateway.ghn.vn/';
 			$this->api_test = 'https://dev-online-gateway.ghn.vn/';
 			$this->api_production = 'https://online-gateway.ghn.vn/';
-			$this->proxy_api_test = 'http://api/api/';
-			$this->proxy_api_production = 'http://api/api/';
+			$this->proxy_api_local = 'http://api/api/ghn-proxy';
+			$this->proxy_api_test = 'http://api/api/ghn-proxy';
+			$this->proxy_api_production = 'http://api/api/ghn-proxy';
 		}
 		
 		function get_env() {
@@ -185,18 +187,15 @@ if (!class_exists('GHN_API')) {
 			$options = $this->get_options();
 			
 			// api request get
-			$query_data = http_build_query(array_merge([
-				'path' => $api_call,
-			], $args));
-			$response = wp_remote_get(
-				$this->get_proxy_api_url().'?'.$query_data,
+			$response = wp_remote_post(
+				$this->get_proxy_api_url().'?path='.$api_call,
 				array(
 					'headers' => array(
 						'Content-Type' => 'application/json',
-						'Token' => $token,
 						'ShopId' => $options['ghn_shopid'],
 					),
 					'httpversion' => '1.1',
+					'body' => json_encode($args)
 				)
 			);
 			$data = wp_remote_retrieve_body($response);
