@@ -239,10 +239,15 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 		<h3>Bên nhận</h3>
 		
 		<table class="form-table">
-		<?php $_billing_first_name = get_post_meta($param_wc_order_id, '_billing_first_name', true);
+		<?php
+		$_billing_first_name = get_post_meta($param_wc_order_id, '_billing_first_name', true);
 		$_billing_last_name = get_post_meta($param_wc_order_id, '_billing_last_name', true);
 		$_billing_phone = get_post_meta($param_wc_order_id, '_billing_phone', true);
-		$_billing_address_1 = get_post_meta($param_wc_order_id, '_billing_address_1', true); ?>
+		$_billing_address_1 = get_post_meta($param_wc_order_id, '_billing_address_1', true);
+		$_billing_district = get_post_meta($param_wc_order_id, '_billing_district', true);
+		$_billing_ward = get_post_meta($param_wc_order_id, '_billing_ward', true);
+		$_order_total = get_post_meta($param_wc_order_id, '_order_total', true);
+		?>
 			<tbody>				
 				<tr valign="top">
 					<td scope="row" class="titledesc" style="vertical-align: text-top;">
@@ -287,19 +292,22 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 					<!-- to_address -->
 						
 					<!-- to_district_id -->
-					<?php $district2 = 0; ?> 
 						<p>
 							<label for="to_district_id">Quận/Huyện</label>
 						</p>							
 						<p>
+						<?php $currentDistrict = 0; ?>
 						<?php if ($ghn_status_chk->editable('to_district_id')) { ?>	
 							<select name="to_district_id" class="wc-enhanced-select ghn-select2 select-ajax-district" style="min-width: 350px;" data-placeholder="Chọn Quận/Huyện" data-targetward="to_ward_code">
 							<?php for ($i = 0; $i < $count_districts; $i++) {
-								if ($i == 0) $district2 = $ghn_districts[$i]->DistrictID;
-									
-								$district_name = $ghn_districts[$i]->DistrictName.' - '.@$ghn_provinces2[$ghn_districts[$i]->ProvinceID]; ?>
-								<option value="<?php echo $ghn_districts[$i]->DistrictID; ?>" <?php echo (@$ghn_order_detail['to_district_id'] == $ghn_districts[$i]->DistrictID) ? 'selected' : ''; ?>>
-								<?php echo $district_name; ?>
+								$isSelected = false;
+								if($_billing_district == $ghn_districts[$i]->DistrictID) {
+									$currentDistrict = $_billing_district;
+									$isSelected = true;
+								}
+								$districtName = $ghn_districts[$i]->DistrictName.' - '.@$ghn_provinces2[$ghn_districts[$i]->ProvinceID]; ?>
+								<option value="<?php echo $ghn_districts[$i]->DistrictID; ?>" <?php echo $isSelected ? 'selected' : ''; ?>>
+									<?php echo $districtName; ?>
 								</option>
 							<?php } ?>
 							</select>
@@ -321,8 +329,8 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 							<label for="to_ward_code">Phường/Xã</label>
 						</p>						
 						<p>
-						<?php $district2 = (@$ghn_order_detail['to_district_id'] == 0) ? $district2 : @$ghn_order_detail['to_district_id'];
-						$ghn_to_wards = $ghn->get_wards($district2); 
+						<?php
+						$ghn_to_wards = $ghn->get_wards($currentDistrict); 
 						$count_to_wards = count($ghn_to_wards);
 						
 						if ($ghn_status_chk->editable('to_ward_code')) { ?>	
@@ -362,8 +370,14 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 							<label for="weight">Khối lượng (gram)</label>
 						</p>					
 						<p>	
-						<?php if ($ghn_status_chk->editable('weight')) { ?>	
-							<input name="weight" type="number" min="0" value="<?php echo (int) @$ghn_order_detail['weight']; ?>" placeholder="" required />
+						<?php if ($ghn_status_chk->editable('weight')) { ?>
+							<?php
+								$weight = 1000;
+								if ((int) @$ghn_order_detail['weight'] > 0) {
+									$weight = (int) @$ghn_order_detail['weight'];
+								}
+							?>	
+							<input name="weight" type="number" min="0" value="<?php echo $weight; ?>" placeholder="" required />
 						<?php } else { ?>	
 							<input name="weight" type="hidden" value="<?php echo (int) @$ghn_order_detail['weight']; ?>" />
 							<input type="number" value="<?php echo esc_attr(@$ghn_order_detail['weight']); ?>" readonly="readonly" />
@@ -378,7 +392,13 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 						<p>
 						<!-- length -->
 						<?php if ($ghn_status_chk->editable('length')) { ?>
-							<input name="length" type="number" min="0" value="<?php echo (int) @$ghn_order_detail['length']; ?>" style="width: 23%;margin-right:2%;" required />
+							<?php
+								$length = 10;
+								if ((int) @$ghn_order_detail['length'] > 0) {
+									$length = (int) @$ghn_order_detail['length'];
+								}
+							?>
+							<input name="length" type="number" min="0" value="<?php echo $length; ?>" style="width: 23%;margin-right:2%;" required />
 						<?php } else { ?>		
 							<input name="weight" type="hidden" value="<?php echo (int) @$ghn_order_detail['length']; ?>" />
 							<input type="number" value="<?php echo esc_attr(@$ghn_order_detail['length']); ?>" readonly="readonly" style="width: 23%;margin-right:2%;" />
@@ -387,7 +407,13 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 						
 						<!-- width -->
 						<?php if ($ghn_status_chk->editable('width')) { ?>
-							<input name="width" type="number" min="0" value="<?php echo (int) @$ghn_order_detail['width']; ?>" style="width: 23%;margin-right:2%;" required />
+							<?php
+								$width = 10;
+								if ((int) @$ghn_order_detail['width'] > 0) {
+									$width = (int) @$ghn_order_detail['width'];
+								}
+							?>
+							<input name="width" type="number" min="0" value="<?php echo $width; ?>" style="width: 23%;margin-right:2%;" required />
 						<?php } else { ?>	
 							<input name="weight" type="hidden" value="<?php echo (int) @$ghn_order_detail['width']; ?>" />	
 							<input type="number" value="<?php echo esc_attr(@$ghn_order_detail['width']); ?>" readonly="readonly" style="width: 23%;margin-right:2%;" />
@@ -396,7 +422,13 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 						
 						<!-- height -->
 						<?php if ($ghn_status_chk->editable('height')) { ?>
-							<input name="height" type="number" min="0" value="<?php echo (int) @$ghn_order_detail['height']; ?>" style="width: 23%;" required />
+							<?php
+								$height = 10;
+								if ((int) @$ghn_order_detail['height'] > 0) {
+									$height = (int) @$ghn_order_detail['height'];
+								}
+							?>
+							<input name="height" type="number" min="0" value="<?php echo $height; ?>" style="width: 23%;" required />
 						<?php } else { ?>		
 							<input name="weight" type="hidden" value="<?php echo (int) @$ghn_order_detail['height']; ?>" />
 							<input type="number" value="<?php echo esc_attr(@$ghn_order_detail['height']); ?>" readonly="readonly" style="width: 23%;" />
@@ -417,8 +449,14 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 							<label for="cod_amount">Thu hộ tiền COD</label>
 						</p>			
 						<p>		
-						<?php if ($ghn_status_chk->editable('cod_amount')) { ?>		
-							<input name="cod_amount" type="number" min="0" value="<?php echo (int) @$ghn_order_detail['cod_amount']; ?>" />
+						<?php if ($ghn_status_chk->editable('cod_amount')) { ?>
+							<?php
+								$cod_amount = $_order_total;
+								if ((int) @$ghn_order_detail['cod_amount'] > 0) {
+									$cod_amount = (int) @$ghn_order_detail['cod_amount'];
+								}
+							?>
+							<input name="cod_amount" type="number" min="0" value="<?php echo $cod_amount; ?>" />
 						<?php } else { ?>	
 							<input name="cod_amount" type="hidden" value="<?php echo (int) @$ghn_order_detail['cod_amount']; ?>" />
 							<input type="number" value="<?php echo esc_attr(@$ghn_order_detail['cod_amount']); ?>" readonly="readonly" />
