@@ -260,7 +260,7 @@ if (!class_exists('GHN_API')) {
 				)
 			);
 			$response = wp_remote_get(
-				$this->get_api_url().'?'.$query_data,
+				$this->get_proxy_api_url().'?'.$query_data,
 				array(
 					'headers' => array(
 						'Content-Type' => 'application/json'
@@ -289,7 +289,7 @@ if (!class_exists('GHN_API')) {
 				)
 			);
 			$response = wp_remote_get(
-				$this->get_api_url().'?'.$query_data,
+				$this->get_proxy_api_url().'?'.$query_data,
 				array(
 					'headers' => array(
 						'Content-Type' => 'application/json'
@@ -310,7 +310,7 @@ if (!class_exists('GHN_API')) {
 			
 			// api request post
 			$response = wp_remote_post(
-				$this->get_api_url().'?path='.$api_call,
+				$this->get_proxy_api_url().'?path='.$api_call,
 				array(
 					'headers' => array(
 						'Content-Type' => 'application/json',
