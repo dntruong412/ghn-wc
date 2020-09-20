@@ -122,7 +122,7 @@ jQuery(document).ready(function($) {
 		}
 		
 		if (d == 0 || r == 0 || c == 0 || w == 0
-		 || insurance_value == 0 || to_district_id == 0 || to_ward_code == 0) {
+		 || to_district_id == 0 || to_ward_code == 0) {
 			$('.ghn-list-items-fee').html('');
 			
 			ghn_loading_msg_close(toast); // end loading
