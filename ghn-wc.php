@@ -42,6 +42,7 @@ if (!class_exists('GHN_WC_Management')) {
 			
 			// ajax
 			add_action('wp_ajax_ghn_ajax_shop_create', array($this, 'ghn_ajax_shop_create'));
+			add_action('wp_ajax_ghn_ajax_get_districts', array($this, 'ghn_ajax_get_districts'));
 			add_action('wp_ajax_ghn_ajax_get_wards', array($this, 'ghn_ajax_get_wards'));
 			add_action('wp_ajax_ghn_ajax_get_servicefees', array($this, 'ghn_ajax_get_servicefees'));
 			add_action('wp_ajax_ghn_ajax_get_order_calc', array($this, 'ghn_ajax_get_order_calc'));
@@ -50,8 +51,51 @@ if (!class_exists('GHN_WC_Management')) {
 			add_action('wp_ajax_ghn_ajax_order_return', array($this, 'ghn_ajax_order_return'));
 			add_action('wp_ajax_ghn_ajax_order_delivery_again', array($this, 'ghn_ajax_order_delivery_again'));
 			add_action('wp_ajax_ghn_ajax_print', array($this, 'ghn_ajax_print'));
+
+			// Woo Hook in
+			add_filter('woocommerce_checkout_fields', array($this, 'woo_custom_override_checkout_fields'));
+			add_filter('woocommerce_billing_fields', array($this, 'woo_custom_billing_fields'));
+			add_action('woocommerce_after_checkout_form', array($this, 'debounce_add_jscript_checkout'));
 		}
-		
+
+		function woo_custom_override_checkout_fields($fields) {
+			unset($fields['billing']['billing_company']);
+			unset($fields['billing']['billing_postcode']);
+			unset($fields['billing']['billing_city']);
+			unset($fields['billing']['billing_address_2']);
+
+			$fields['billing']['billing_district'] = array(
+				'type'       => 'select',
+				'required'   => true,
+				'priority'   => 40,
+				'class'      => array( 'form-row', 'form-row-first', 'validate-required' ),
+				'label'      => __( 'District' ),
+				'options'    => array(
+					'blank'	    => __( 'Select district', 'Select district' )
+			    )
+			);
+
+			$fields['billing']['billing_ward'] = array(
+				'type'       => 'select',
+				'required'   => true,
+				'priority'   => 40,
+				'class'      => array( 'form-row', 'form-row-last', 'validate-required' ),
+				'label'      => __( 'Ward' ),
+				'options'    => array(
+					'blank'	    => __( 'Select ward', 'Select ward' )
+			    )
+			);
+
+			return $fields;
+		}		
+
+		function woo_custom_billing_fields($fields) {
+			return $fields;
+		}
+
+		function debounce_add_jscript_checkout() {
+			wp_enqueue_script('ghn-checkout', plugins_url('ghn-wc/assets/js/checkout.js'), array('jquery'), false, true);
+		}
 		
 		/**
 		* Functions
@@ -780,6 +824,33 @@ if (!class_exists('GHN_WC_Management')) {
 			}
 		}
 		
+		/**
+		* ajax functions
+		*/
+		function ghn_ajax_get_districts() {
+			$districts = array();
+			$ghn_options = $this->ghn_get_options();
+			$ghn = new GHN_API();
+			$ghn->set_options($ghn_options);
+		
+			$provinces = $ghn->get_provinces();
+			$districts = $ghn->get_districts();
+
+			$data = array_map(function($district) use($provinces) {
+				foreach ($provinces as $province) {
+					if ($district->ProvinceID == $province->ProvinceID) {
+						$district->DistrictNameWithProvinceName = $district->DistrictName . ' - ' . $province->ProvinceName;
+						break;
+					}
+				}
+				return [
+					'id' => $district->DistrictID,
+					'text' => $district->DistrictNameWithProvinceName
+				];
+			}, $districts);
+
+			return wp_send_json_success($data);
+		}
 		
 		/**
 		* ajax functions
@@ -1375,7 +1446,7 @@ if (!class_exists('GHN_WC_Management')) {
 			wp_enqueue_script('ghn-select2', plugins_url('woocommerce/assets/js/select2/select2.min.js'), array('jquery'), true);
 			wp_enqueue_script('ghn-toastify', plugins_url('ghn-wc/assets/js/toastify.min.js'), array('jquery'), true);
 			wp_enqueue_script('ghn-script', plugins_url('ghn-wc/assets/js/script.js'), array('jquery'), true);
-			
+
 			// set global
 			$ghn_options = $this->ghn_get_options();
 			$ghn = new GHN_API();
