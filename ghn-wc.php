@@ -25,13 +25,14 @@ if (!class_exists('GHN_WC_Management')) {
 			// classes
 			require_once(trailingslashit(plugin_dir_path( __FILE__ )).'models/GHN.php');
 			require_once(trailingslashit(plugin_dir_path( __FILE__ )).'models/GHNStatus.php');
+			require_once(trailingslashit(plugin_dir_path( __FILE__ )).'GHNShippingMethod.php');
 			
 			// db
 			register_activation_hook(__FILE__, array($this, 'ghn_db'));
 			
 			// functions
 			$this->ghn_tables();
-		
+
 			// actions	
 			add_action('init', array($this, 'ghn_register_posts'));
 			add_action('admin_menu', array($this, 'ghn_register_pages'));
@@ -56,6 +57,7 @@ if (!class_exists('GHN_WC_Management')) {
 			add_filter('woocommerce_checkout_fields', array($this, 'woo_custom_override_checkout_fields'));
 			add_filter('woocommerce_billing_fields', array($this, 'woo_custom_billing_fields'));
 			add_action('woocommerce_after_checkout_form', array($this, 'debounce_add_jscript_checkout'));
+			add_filter('woocommerce_shipping_methods', array($this, 'add_ghn_shipping_method'));
 		}
 
 		function woo_custom_override_checkout_fields($fields) {
@@ -96,7 +98,35 @@ if (!class_exists('GHN_WC_Management')) {
 		function debounce_add_jscript_checkout() {
 			wp_enqueue_script('ghn-checkout', plugins_url('ghn-wc/assets/js/checkout.js'), array('jquery'), false, true);
 		}
-		
+
+		function add_ghn_shipping_method( $methods ) {
+			if (is_checkout()) {
+				if (!isset($_POST['post_data'])) {
+					return $methods;
+				}
+				parse_str($_POST['post_data'], $billingInfo);
+				$servicefees = $this->ghn_get_servicefees(false, false, array(
+					'to_district_id' => (int) $billingInfo['billing_district'],
+					'to_ward_code'   => (int) $billingInfo['billing_ward'],
+					'length'         => 10,
+					'width'          => 10,
+					'height'         => 10,
+					'weight'         => 1000
+				));
+				foreach ($servicefees as $fee) {
+					$method = new GHN_WC_Shipping_Method();
+					$method->id = $fee['service_id'];
+					$method->method_title = $fee['short_name'];
+					$method->title = 'GHN: ' . $fee['short_name'];
+					$method->cost = $fee['data_fee']->total;
+					GHNShippingMethods::$methods[$fee['service_id']] = $method;
+				}
+				$methods = array_merge($methods, GHNShippingMethods::$methods);
+			}
+
+			return $methods;
+		}
+
 		/**
 		* Functions
 		*/

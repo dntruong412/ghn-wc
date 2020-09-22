@@ -6,6 +6,10 @@ jQuery(document).ready(function($) {
         reloadWards($(this).val());
     });
 
+    $('#billing_ward').on('change', function() {
+        reloadShippingFee();
+    });
+
     jQuery.ajax({
         url: wc_cart_fragments_params.ajax_url,
         type: 'POST',
@@ -39,6 +43,13 @@ function reloadWards(distictId) {
                 placeholder: "Select a ward",
                 data: data.data
             });
+            reloadShippingFee();
         }
     });
+}
+
+function reloadShippingFee() {
+    if(parseInt(jQuery('#billing_district').val()) > 0 && parseInt(jQuery('#billing_ward').val()) > 0) {
+        jQuery('body').trigger('update_checkout');
+    }
 }
