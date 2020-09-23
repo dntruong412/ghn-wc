@@ -443,7 +443,8 @@ if (!class_exists('GHN_API')) {
 				array(
 					'headers' => array(
 						'Content-Type' => 'application/json',
-						'Token' => $options['ghn_token']
+						'Token' => $options['ghn_token'],
+						'ShopId' => $options['ghn_shopid'],
 					),
 					'httpversion' => '1.1',
 					'body' => json_encode($args),
