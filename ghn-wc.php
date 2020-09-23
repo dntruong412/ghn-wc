@@ -1055,6 +1055,7 @@ if (!class_exists('GHN_WC_Management')) {
             
             // data array
             $post_data = array(
+                'content' => 'avc',
                 'payment_type_id' => (int) @$_POST['payment_type_id'],
                 'note' => sanitize_text_field(@$_POST['note']),
                 'required_note' => sanitize_text_field(@$_POST['required_note']),
@@ -1077,16 +1078,23 @@ if (!class_exists('GHN_WC_Management')) {
                 'insurance_value' => (int) @$_POST['insurance_value'],
                 'pick_station_id' => (int) @$_POST['pick_station_id'],
                 'service_id' => (int) @$_POST['service_id'],
-                'service_type_id' => (int) @$_POST['service_type_id'],
-                'items' => array(
-                    array(
-                        "name" => "quần dài",
-                        "code" => "sip123",
-                        "quantity" => 1
-                    )
-                )
+                'service_type_id' => (int) @$_POST['service_type_id']
             );
-            
+
+            // Get woo items list
+            include_once WP_PLUGIN_DIR .'/woocommerce/woocommerce.php';
+            $order = wc_get_order(@$_POST['client_order_code']);
+            $dataItems = array();
+            foreach ( $order->get_items() as $item_id => $item ) {
+                $dataItems[] = array(
+                    'name'     => $item->get_name(),
+                    'code'     => @$_POST['client_order_code'] . '-' . $item->get_product_id(),
+                    'quantity' => intval($item->get_quantity())
+                );
+            }
+            $post_data['items'] = $dataItems;
+            $post_data['content'] = $dataItems[0]['name'];
+
             $ghn_options = $this->ghn_get_options();
             $ghn = new GHN_API();
             $ghn->set_options($ghn_options);
