@@ -9,6 +9,13 @@
 */
 defined('ABSPATH') or die('No script kiddies please!');
 
+add_action('init', 'start_session', 1);
+function start_session() {
+	if(!session_id()) {
+		session_start();
+	}
+}
+
 
 if (!class_exists('GHN_WC_Management')) {
 	class GHN_WC_Management {
@@ -52,19 +59,21 @@ if (!class_exists('GHN_WC_Management')) {
 			add_action('wp_ajax_ghn_ajax_order_return', array($this, 'ghn_ajax_order_return'));
 			add_action('wp_ajax_ghn_ajax_order_delivery_again', array($this, 'ghn_ajax_order_delivery_again'));
 			add_action('wp_ajax_ghn_ajax_print', array($this, 'ghn_ajax_print'));
+			add_action('wp_ajax_ghn_ajax_update_shipping_methods', array($this, 'ghn_ajax_update_shipping_methods'));
 
 			// Woo Hook in
 			add_filter('woocommerce_checkout_fields', array($this, 'woo_custom_override_checkout_fields'));
 			add_filter('woocommerce_billing_fields', array($this, 'woo_custom_billing_fields'));
 			add_action('woocommerce_after_checkout_form', array($this, 'debounce_add_jscript_checkout'));
 			add_filter('woocommerce_shipping_methods', array($this, 'add_ghn_shipping_method'));
+			add_action('woocommerce_order_details_after_order_table', array($this, 'reupdateAddressForOrder'));
 		}
 
 		function woo_custom_override_checkout_fields($fields) {
 			unset($fields['billing']['billing_company']);
 			unset($fields['billing']['billing_postcode']);
-			unset($fields['billing']['billing_city']);
-			unset($fields['billing']['billing_address_2']);
+			$fields['billing']['billing_city']['class'] = array('d-none');
+			$fields['billing']['billing_address_2']['class'] = array('d-none');
 
 			$fields['billing']['billing_district'] = array(
 				'type'       => 'select',
@@ -96,35 +105,38 @@ if (!class_exists('GHN_WC_Management')) {
 		}
 
 		function debounce_add_jscript_checkout() {
+			wp_enqueue_style('ghn-checkout', plugins_url('ghn-wc/assets/css/checkout.css'));
 			wp_enqueue_script('ghn-checkout', plugins_url('ghn-wc/assets/js/checkout.js'), array('jquery'), false, true);
 		}
 
 		function add_ghn_shipping_method( $methods ) {
-			if (is_checkout()) {
-				if (!isset($_POST['post_data'])) {
-					return $methods;
-				}
-				parse_str($_POST['post_data'], $billingInfo);
-				$servicefees = $this->ghn_get_servicefees(false, false, array(
-					'to_district_id' => (int) $billingInfo['billing_district'],
-					'to_ward_code'   => (int) $billingInfo['billing_ward'],
-					'length'         => 10,
-					'width'          => 10,
-					'height'         => 10,
-					'weight'         => 1000
-				));
-				foreach ($servicefees as $fee) {
-					$method = new GHN_WC_Shipping_Method();
-					$method->id = $fee['service_id'];
-					$method->method_title = $fee['short_name'];
-					$method->title = 'GHN: ' . $fee['short_name'];
-					$method->cost = $fee['data_fee']->total;
-					GHNShippingMethods::$methods[$fee['service_id']] = $method;
-				}
-				$methods = array_merge($methods, GHNShippingMethods::$methods);
+			if (!wp_doing_ajax()) {
+				unset($_SESSION['shipping_methods']);
 			}
 
+			if(isset($_SESSION['shipping_methods'])) {
+				foreach ($_SESSION['shipping_methods'] as $shipping) {
+					$methods[] = new GHN_WC_Shipping_Method($shipping);
+				}
+			} else {
+				$methods['ghn_shipping_01'] = new GHN_WC_Shipping_Method(array(
+					'id'           => 'ghn_shipping',
+					'method_title' => 'GHN',
+					'title'        => 'GHN',
+					'enabled'      => 'yes',
+					'cost'         => 0
+				));	
+			}
+			
 			return $methods;
+		}
+
+		function reupdateAddressForOrder($order) {
+			// echo "<pre>";
+			// var_dump($order);
+			// die();
+			// WC()->customer->set_address_2('Phuong 5, Phu Nhuan');
+			return;
 		}
 
 		/**
@@ -852,6 +864,21 @@ if (!class_exists('GHN_WC_Management')) {
 					)
 				);
 			}
+		}
+
+		function ghn_ajax_update_shipping_methods() {
+			foreach ($_POST['data'] as $key => $shipping) {
+				$_SESSION['shipping_methods'][] = array(
+					'id'           => 'ghn_shipping_' . $shipping['service_id'],
+					'method_title' => $shipping['short_name'],
+					'title'        => $shipping['short_name'],
+					'enabled'      => 'yes',
+					'cost'         => $shipping['data_fee']['total']
+				);
+			};
+			return wp_send_json_success([
+				'status' => 1
+			]);
 		}
 		
 		/**

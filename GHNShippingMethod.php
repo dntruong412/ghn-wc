@@ -22,15 +22,15 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                  * @access public
                  * @return void
                  */
-                public function __construct() {
-                    $this->id                 = 'ghn_shipping_method'; // Id for ghn shipping method. Should be uunique.
-                    $this->method_title       = __( 'GHN Shipping Method' );  // Title shown in admin
-                    $this->method_description = __( 'Description of GHN shipping method' ); // Description shown in admin
+                public function __construct($options) {
+                    $this->id                 = !empty($options['id']) ? $options['id'] : 'ghn_shipping_method'; // Id for ghn shipping method. Should be uunique.
+                    $this->method_title       = !empty($options['method_title']) ? $options['method_title'] : __( 'GHN Shipping Method' );  // Title shown in admin
+                    $this->method_description = !empty($options['method_description']) ? $options['method_description'] : __( 'Description of GHN shipping method' ); // Description shown in admin
 
-                    $this->enabled            = "yes"; // This can be added as an setting but for this example its forced enabled
-                    $this->title              = "GHN"; // This can be added as an setting but for this example its forced.
+                    $this->enabled            = !empty($options['enabled']) ? $options['enabled'] : "yes"; // This can be added as an setting but for this example its forced enabled
+                    $this->title              = !empty($options['title']) ? $options['title'] : "GHN"; // This can be added as an setting but for this example its forced.
 
-                    $this->cost               = 0;
+                    $this->cost               = !empty($options['cost']) ? $options['cost'] : 0;
 
                     $this->init();
                 }
