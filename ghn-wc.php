@@ -123,7 +123,7 @@ if (!class_exists('GHN_WC_Management')) {
 			$ghnAPI->set_options($options);
 
 			$GHN = array(
-				'api_services'      => $ghnAPI->get_api_url() . 'shiip/public-api/pack-service/all',
+				'api_services'      => $ghnAPI->get_api_url() . 'shiip/public-api/v2/shipping-order/available-services',
 				'api_services_fees' => $ghnAPI->get_api_url() . 'shiip/public-api/v2/shipping-order/fee',
 				'token'             => @$options['ghn_token'],
 				'shop_id'           => @$options['ghn_shopid'],

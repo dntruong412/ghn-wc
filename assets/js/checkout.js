@@ -77,7 +77,7 @@ function reloadShippingFee() {
             "Content-Type": "application/json"
         },
         "data": JSON.stringify({
-            "shop_id": GHN.shop_id,
+            "shop_id": parseInt(GHN.shop_id),
             "from_district": parseInt(GHN.from_district),
             "to_district": to_district
         }),
@@ -99,7 +99,7 @@ function reloadShippingFee() {
                     "Content-Type": "application/json"
                 },
                 "data": JSON.stringify({
-                    "shop_id": GHN.shop_id,
+                    "shop_id": parseInt(GHN.shop_id),
                     "service_id": servicesResponse.data[i].service_id,
                     "service_type_id": servicesResponse.data[i].service_type_id,
                     "to_district_id": to_district,
