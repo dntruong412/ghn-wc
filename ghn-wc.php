@@ -16,7 +16,6 @@ function start_session() {
 	}
 }
 
-
 if (!class_exists('GHN_WC_Management')) {
 	class GHN_WC_Management {
 		/**
@@ -66,14 +65,25 @@ if (!class_exists('GHN_WC_Management')) {
 			add_filter('woocommerce_billing_fields', array($this, 'woo_custom_billing_fields'));
 			add_action('woocommerce_after_checkout_form', array($this, 'debounce_add_jscript_checkout'));
 			add_filter('woocommerce_shipping_methods', array($this, 'add_ghn_shipping_method'));
-			add_action('woocommerce_order_details_after_order_table', array($this, 'reupdateAddressForOrder'));
 		}
 
 		function woo_custom_override_checkout_fields($fields) {
 			unset($fields['billing']['billing_company']);
 			unset($fields['billing']['billing_postcode']);
 			$fields['billing']['billing_city']['class'] = array('d-none');
-			$fields['billing']['billing_address_2']['class'] = array('d-none');
+
+			$fields['billing']['billing_address_1'] = array(
+				'class'        => array ('d-none'),
+				'required'     => false
+			);
+
+			$fields['billing']['billing_address_1_text'] = array(
+				'label'        => 'Address',
+				'placeholder'  => 'Address',
+				'class'        => array ('form-row', 'address-field', 'validate-required', 'form-row-wide'),
+				'priority'     => 40,
+				'required'     => true
+			);
 
 			$fields['billing']['billing_district'] = array(
 				'type'       => 'select',
@@ -107,6 +117,19 @@ if (!class_exists('GHN_WC_Management')) {
 		function debounce_add_jscript_checkout() {
 			wp_enqueue_style('ghn-checkout', plugins_url('ghn-wc/assets/css/checkout.css'));
 			wp_enqueue_script('ghn-checkout', plugins_url('ghn-wc/assets/js/checkout.js'), array('jquery'), false, true);
+
+			$options = $this->ghn_get_options();
+			$ghnAPI = new GHN_API();
+			$ghnAPI->set_options($options);
+
+			$GHN = array(
+				'api_services'      => $ghnAPI->get_api_url() . 'shiip/public-api/pack-service/all',
+				'api_services_fees' => $ghnAPI->get_api_url() . 'shiip/public-api/v2/shipping-order/fee',
+				'token'             => @$options['ghn_token'],
+				'shop_id'           => @$options['ghn_shopid'],
+				'from_district'     => @$options['ghn_shopdistrict']
+			);
+			wp_localize_script('ghn-checkout', 'GHN', $GHN);
 		}
 
 		function add_ghn_shipping_method( $methods ) {
@@ -114,12 +137,18 @@ if (!class_exists('GHN_WC_Management')) {
 				unset($_SESSION['shipping_methods']);
 			}
 
-			if(isset($_SESSION['shipping_methods'])) {
-				foreach ($_SESSION['shipping_methods'] as $shipping) {
-					$methods[] = new GHN_WC_Shipping_Method($shipping);
+			foreach ($methods as $key => $method) {
+				if (strpos($key, 'ghn_shipping_') !== false) {
+					unset($methods[$key]);
+				}
+			}
+
+			if(isset($_SESSION['shipping_methods']) && count($_SESSION['shipping_methods']) > 0) {
+				foreach ($_SESSION['shipping_methods'] as $index => $shipping) {
+					$methods['ghn_shipping_' . $index] = new GHN_WC_Shipping_Method($shipping);
 				}
 			} else {
-				$methods['ghn_shipping_01'] = new GHN_WC_Shipping_Method(array(
+				$methods['ghn_shipping_0'] = new GHN_WC_Shipping_Method(array(
 					'id'           => 'ghn_shipping',
 					'method_title' => 'GHN',
 					'title'        => 'GHN',
@@ -129,14 +158,6 @@ if (!class_exists('GHN_WC_Management')) {
 			}
 			
 			return $methods;
-		}
-
-		function reupdateAddressForOrder($order) {
-			// echo "<pre>";
-			// var_dump($order);
-			// die();
-			// WC()->customer->set_address_2('Phuong 5, Phu Nhuan');
-			return;
 		}
 
 		/**
@@ -867,6 +888,7 @@ if (!class_exists('GHN_WC_Management')) {
 		}
 
 		function ghn_ajax_update_shipping_methods() {
+			$_SESSION['shipping_methods'] = array();
 			foreach ($_POST['data'] as $key => $shipping) {
 				$_SESSION['shipping_methods'][] = array(
 					'id'           => 'ghn_shipping_' . $shipping['service_id'],
