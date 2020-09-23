@@ -39,13 +39,18 @@ $ghn_order_detail = $ghn->get_order($ghn_order_code);
 $ghn_draft_order_detail = null;
 update_post_meta($post_id, 'ghn_order_status', @$ghn_order_detail['status']);
 
+// Order original info
+$ghn_draft_order_detail = $ghn->getOrderDraftInfo($param_wc_order_id);
 if (empty($ghn_order_detail)) {
-	$ghn_draft_order_detail = $ghn->getOrderDraftInfo($param_wc_order_id);
 	@$ghn_order_detail['service_id'] = null;
 	foreach ($ghn_draft_order_detail as $detail) {
 		if ($detail->meta_key == 'method_id') {
 			$shippingMethodId = explode('_', $detail->meta_value);
 			@$ghn_order_detail['service_id'] = end($shippingMethodId);
+		}
+		if ($detail->meta_key == '_line_subtotal') {
+			@$ghn_order_detail['cod_amount'] = $detail->meta_value;
+			@$ghn_order_detail['insurance_value'] = $detail->meta_value;
 		}
 	}
 }
