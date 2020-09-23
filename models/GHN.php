@@ -721,5 +721,19 @@ if (!class_exists('GHN_API')) {
 				'data' => @$result['data'],
 			);			
 		}
+
+		public function getOrderDraftInfo($orderId) {
+			global $wpdb;
+			$query = "
+				SELECT meta_key, meta_value 
+				FROM wp_woocommerce_order_itemmeta 
+				WHERE order_item_id IN (
+					SELECT order_item_id 
+					FROM wp_woocommerce_order_items 
+					WHERE order_item_type='shipping' AND order_id=%d)
+			";
+			$order = $wpdb->get_results($wpdb->prepare($query, $orderId));
+			return $order;
+		}
 	}
 }

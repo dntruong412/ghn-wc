@@ -396,13 +396,13 @@ if (!class_exists('GHN_WC_Management')) {
 				
 				if (!empty($label)) {
 					$total += $value;
-					$html .= $label.'<code>'.number_format($value, 0, ',', '.').' VNĐ</code><br/>';
+					$html .= $label.'<code>'.number_format($value, 0, ',', '.').' <sup>đ</sup></code><br/>';
 				}
 			}
 			
 			$total = (@$args['total'] > 0) ? @$args['total'] : $total;
 			
-			if ($total > 0) $html .= '<hr/><strong>Tổng phí:</strong> <code>'.number_format($total, 0, ',', '.').' VNĐ</code><br/><small>Chưa tính tiền thu hộ</small>';
+			if ($total > 0) $html .= '<hr/><strong>Tổng phí:</strong> <code>'.number_format($total, 0, ',', '.').' <sup>đ</sup></code><br/><small>Chưa tính tiền thu hộ</small>';
 			
 			return $html;
 		}

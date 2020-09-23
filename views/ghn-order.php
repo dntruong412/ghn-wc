@@ -36,7 +36,19 @@ $ghn_provinces2 = array_column($ghn_provinces, 'ProvinceName', 'ProvinceID');
 // order detail
 $ghn_order_code = $this->ghn_get_ghn_order_code($post_id);
 $ghn_order_detail = $ghn->get_order($ghn_order_code);
+$ghn_draft_order_detail = null;
 update_post_meta($post_id, 'ghn_order_status', @$ghn_order_detail['status']);
+
+if (empty($ghn_order_detail)) {
+	$ghn_draft_order_detail = $ghn->getOrderDraftInfo($param_wc_order_id);
+	@$ghn_order_detail['service_id'] = null;
+	foreach ($ghn_draft_order_detail as $detail) {
+		if ($detail->meta_key == 'method_id') {
+			$shippingMethodId = explode('_', $detail->meta_value);
+			@$ghn_order_detail['service_id'] = end($shippingMethodId);
+		}
+	}
+}
 
 $ghn_status_chk = new GHN_Status();
 $ghn_status_chk->set_status(@$ghn_order_detail['status']);
@@ -247,6 +259,7 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 		$_billing_district = get_post_meta($param_wc_order_id, '_billing_district', true);
 		$_billing_ward = get_post_meta($param_wc_order_id, '_billing_ward', true);
 		$_order_total = get_post_meta($param_wc_order_id, '_order_total', true);
+		$_billing_address_1_text = get_post_meta($param_wc_order_id, '_billing_address_1_text', true);
 		?>
 			<tbody>				
 				<tr valign="top">
@@ -284,7 +297,7 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 						</p>					
 						<p>	
 						<?php if ($ghn_status_chk->editable('to_address')) { ?>	
-							<input name="to_address" type="text" value="<?php echo (@$ghn_order_detail['to_address'] == '') ? $_billing_address_1 : esc_attr(@$ghn_order_detail['to_address']); ?>" placeholder="Thông tin địa chỉ." required />
+							<input name="to_address" type="text" value="<?php echo (@$ghn_order_detail['to_address'] == '') ? $_billing_address_1_text : esc_attr(@$ghn_order_detail['to_address']); ?>" placeholder="Thông tin địa chỉ." required />
 						<?php } else { ?>	
 							<input type="text" value="<?php echo esc_attr(@$ghn_order_detail['to_address']); ?>" readonly="readonly" />
 						<?php } ?>
@@ -335,8 +348,13 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 						
 						if ($ghn_status_chk->editable('to_ward_code')) { ?>	
 							<select name="to_ward_code" class="wc-enhanced-select ghn-select2" style="min-width: 350px;" data-placeholder="Chọn Phường/Xã">
-							<?php for ($i = 0; $i < $count_to_wards; $i++) { ?>
-								<option value="<?php echo $ghn_to_wards[$i]->WardCode; ?>" <?php echo (@$ghn_order_detail['to_ward_code'] == $ghn_to_wards[$i]->WardCode) ? 'selected' : ''; ?>>
+							<?php for ($i = 0; $i < $count_to_wards; $i++) {
+									$isSelected = false;
+									if($_billing_ward == $ghn_to_wards[$i]->WardCode) {
+										$isSelected = true;
+									}
+								?>
+								<option value="<?php echo $ghn_to_wards[$i]->WardCode; ?>" <?php echo $isSelected ? 'selected' : ''; ?>>
 								<?php echo $ghn_to_wards[$i]->WardName; ?>
 								</option>
 							<?php } ?>
@@ -451,9 +469,9 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 						<p>		
 						<?php if ($ghn_status_chk->editable('cod_amount')) { ?>
 							<?php
-								$cod_amount = $_order_total;
+								$cod_amount = floor((int) $_order_total);
 								if ((int) @$ghn_order_detail['cod_amount'] > 0) {
-									$cod_amount = (int) @$ghn_order_detail['cod_amount'];
+									$cod_amount = floor((int) @$ghn_order_detail['cod_amount']);
 								}
 							?>
 							<input name="cod_amount" type="number" min="0" value="<?php echo $cod_amount; ?>" />
@@ -540,7 +558,7 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 						<?php } ?>
 							
 							<?php echo @$servicefees[$i]['short_name']; ?>
-							<br/> <?php echo @$servicefees[$i]['data_fee']->service_fee; ?> VNĐ
+							<br/> <?php echo number_format(@$servicefees[$i]['data_fee']->service_fee, 0, ',', '.'); ?> <sup>đ</sup>
 						</label>
 					</strong>
 				</li>
