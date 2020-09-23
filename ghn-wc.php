@@ -1086,9 +1086,10 @@ if (!class_exists('GHN_WC_Management')) {
             $order = wc_get_order(@$_POST['client_order_code']);
             $dataItems = array();
             foreach ( $order->get_items() as $item_id => $item ) {
+                $sku = !empty($item->get_product()->get_sku()) ? ($item->get_product()->get_sku()) : (@$_POST['client_order_code'] . '-' . $item->get_product_id());
                 $dataItems[] = array(
                     'name'     => $item->get_name(),
-                    'code'     => @$_POST['client_order_code'] . '-' . $item->get_product_id(),
+                    'code'     => $sku,
                     'quantity' => intval($item->get_quantity())
                 );
             }
