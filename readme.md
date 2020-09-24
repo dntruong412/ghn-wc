@@ -1,5 +1,4 @@
 === GHN Woocommerce ===
-Contributors: diancom1202 
 Tags: woocommerce, shipping, order, giaohangnhanh, ghn
 Requires at least: 4.4
 Tested up to: 5.4.2

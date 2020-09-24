@@ -1,10 +1,12 @@
 <?php
 /*
 *
-* Plugin Name: GHN Woocommerce 
+* Plugin Name: GHN-WC
+* Plugin URI: https://www.mulutu.vn/ghn-wc.zip
 * Description: Plugin provides basic function for GHN Panel.
 * Version: 1.0
 * Text Domain: ghn-wc
+* Author URI: https://www.mulutu.vn
 *
 */
 defined('ABSPATH') or die('No script kiddies please!');
