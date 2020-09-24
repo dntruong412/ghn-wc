@@ -316,7 +316,7 @@ if (!class_exists('GHN_WC_Management')) {
             $coupon = sanitize_text_field(@$args['coupon']);
             $to_district_id = (int) @$args['to_district_id'];
             $to_ward_code = (int) @$args['to_ward_code'];
-            $insurance_fee = (int) @$args['insurance_value'];
+            $insurance_fee = isset($args['insurance_value']) ? $args['insurance_value'] : 0;
             $length = (int) @$args['length'];
             $width = (int) @$args['width'];
             $height = (int) @$args['height'];
@@ -413,7 +413,7 @@ if (!class_exists('GHN_WC_Management')) {
                 }
             }
             
-            $total = (@$args['total'] > 0) ? @$args['total'] : $total;
+            $total = (isset($args['total']) && intval($args['total']) > 0) ? $args['total'] : $total;
             
             if ($total > 0) $html .= '<hr/><strong>Tổng phí:</strong> <code>'.number_format($total, 0, ',', '.').' <sup>đ</sup></code><br/><small>Chưa tính tiền thu hộ</small>';
             
@@ -565,13 +565,13 @@ if (!class_exists('GHN_WC_Management')) {
         }
         
         function ghn_bulk_action_notices() {
-            if(!empty(@$_REQUEST['ghn_bulk_action_false'])) {
+            if(!empty($_REQUEST['ghn_bulk_action_false'])) {
                 $ghn_bulk_action_false = $_REQUEST['ghn_bulk_action_false'];
                 
                 echo '<div id="message" class="updated notice is-dismissible"><p>'.$ghn_bulk_action_false['message'].'.</p></div>';
             }
             
-            if(!empty(@$_REQUEST['ghn_bulk_action_true'])) {
+            if(!empty($_REQUEST['ghn_bulk_action_true'])) {
                 $ghn_bulk_action_true = $_REQUEST['ghn_bulk_action_true'];
                 
                 if (@$ghn_bulk_action_true['type'] == 'print') {
@@ -705,7 +705,7 @@ if (!class_exists('GHN_WC_Management')) {
         function ghn_restrict_manage_ghn_order($post_type = '') {
             if (is_admin()) {
                 if ($post_type == 'ghn_order') {
-                    $get_ghn_status = @$_GET['ghn_status'];
+                    $get_ghn_status = isset($_GET['ghn_status']) ? $_GET['ghn_status'] : null;
                     $ghn_status_chk = new GHN_Status();
                     
                     if (count($ghn_status_chk->status) == 0) return; ?>

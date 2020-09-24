@@ -102,8 +102,12 @@ $count_wards = count($ghn_wards); ?>
 							<select name="new_district" style="min-width: 350px;" class="wc-enhanced-select ghn-select2 select-ajax-district" data-placeholder="Chọn Quận/Huyện" data-targetward="new_ward">	
 							<?php for($i = 0; $i < $count_districts; $i++) {
 								if ($i == 0) $district1 = $ghn_districts[$i]->DistrictID;
-								
-								$district_name = $ghn_districts[$i]->DistrictName.' - '.@$ghn_provinces2[$ghn_districts[$i]->ProvinceID]; ?>
+
+								$district_name = $ghn_districts[$i]->DistrictName;
+								if (isset($ghn_provinces2[$ghn_districts[$i]->ProvinceID])) {
+									$district_name .= ' - ' . $ghn_provinces2[$ghn_districts[$i]->ProvinceID];
+								}								
+							?>
 								<option value="<?php echo $ghn_districts[$i]->DistrictID; ?>"><?php echo $district_name; ?></option>
 							<?php } ?>
 							</select>
@@ -154,7 +158,10 @@ $count_wards = count($ghn_wards); ?>
 							if (@$store['_id'] == 0) continue;
 							
 							for($i = 0; $i < $count_districts; $i++) {	
-								$district_name = $ghn_districts[$i]->DistrictName.' - '.@$ghn_provinces2[$ghn_districts[$i]->ProvinceID];
+								$district_name = $ghn_districts[$i]->DistrictName;
+								if (isset($ghn_provinces2[$ghn_districts[$i]->ProvinceID])) {
+									$district_name .= ' - ' . $ghn_provinces2[$ghn_districts[$i]->ProvinceID];
+								}
 								
 								if ($store['district_id'] == $ghn_districts[$i]->DistrictID) {
 									$store_district_name = $district_name;

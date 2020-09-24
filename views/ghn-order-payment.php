@@ -3,7 +3,7 @@
 global $post, $ghn, $ghn_order_code, $ghn_order_detail;
 
 $post_id = $post->ID;
-$param_wc_order_id = (int) @$_GET['wc_order_id'];
+$param_wc_order_id = !empty($_GET['wc_order_id']) ? $_GET['wc_order_id'] : 0;
 
 if (@$post->post_parent > 0) $param_wc_order_id = @$post->post_parent;
 

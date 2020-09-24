@@ -9,7 +9,7 @@ wp_enqueue_script('ghn-order', plugins_url('ghn-wc/assets/js/order.js'), array('
 global $post, $ghn, $ghn_order_code, $ghn_order_detail;
 
 $post_id = $post->ID;
-$param_wc_order_id = (int) @$_GET['wc_order_id'];
+$param_wc_order_id = !empty($_GET['wc_order_id']) ? $_GET['wc_order_id'] : 0;
 
 if (@$post->post_parent == 0) {
 	if ($param_wc_order_id == 0) {
@@ -209,8 +209,12 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 								<select name="return_district_id" class="return-field wc-enhanced-select ghn-select2 select-ajax-district" style="min-width: 350px;" data-placeholder="Chọn Quận/Huyện" data-targetward="return_ward_code">
 								<?php for ($i = 0; $i < $count_districts; $i++) {
 									if ($i == 0) $district1 = $ghn_districts[$i]->DistrictID;
-							
-									$district_name = $ghn_districts[$i]->DistrictName.' - '.@$ghn_provinces2[$ghn_districts[$i]->ProvinceID]; ?>
+
+									$district_name = $ghn_districts[$i]->DistrictName;
+									if (isset($ghn_provinces2[$ghn_districts[$i]->ProvinceID])) {
+										$district_name .= ' - ' . $ghn_provinces2[$ghn_districts[$i]->ProvinceID];
+									}
+								?>
 									<option value="<?php echo $ghn_districts[$i]->DistrictID; ?>" <?php echo (@$ghn_order_detail['return_district_id'] == $ghn_districts[$i]->DistrictID) ? 'selected' : ''; ?>>
 									<?php echo $district_name; ?>
 									</option>
@@ -333,7 +337,11 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 									$currentDistrict = $_billing_district;
 									$isSelected = true;
 								}
-								$districtName = $ghn_districts[$i]->DistrictName.' - '.@$ghn_provinces2[$ghn_districts[$i]->ProvinceID]; ?>
+								$districtName = $ghn_districts[$i]->DistrictName;
+								if (isset($ghn_provinces2[$ghn_districts[$i]->ProvinceID])) {
+									$districtName .= ' - ' . $ghn_provinces2[$ghn_districts[$i]->ProvinceID];
+								}
+							?>
 								<option value="<?php echo $ghn_districts[$i]->DistrictID; ?>" <?php echo $isSelected ? 'selected' : ''; ?>>
 									<?php echo $districtName; ?>
 								</option>
