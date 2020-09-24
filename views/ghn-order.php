@@ -42,15 +42,18 @@ update_post_meta($post_id, 'ghn_order_status', @$ghn_order_detail['status']);
 // Order original info
 $ghn_draft_order_detail = $ghn->getOrderDraftInfo($param_wc_order_id);
 if (empty($ghn_order_detail)) {
-	@$ghn_order_detail['service_id'] = null;
+	$ghn_order_detail['service_id'] = null;
+	$ghn_order_detail['cod_amount'] = null;
+	$ghn_order_detail['insurance_value'] = null;
+
 	foreach ($ghn_draft_order_detail as $detail) {
 		if ($detail->meta_key == 'method_id') {
 			$shippingMethodId = explode('_', $detail->meta_value);
-			@$ghn_order_detail['service_id'] = end($shippingMethodId);
+			$ghn_order_detail['service_id'] = end($shippingMethodId);
 		}
 		if ($detail->meta_key == '_line_subtotal') {
-			@$ghn_order_detail['cod_amount'] = $detail->meta_value;
-			@$ghn_order_detail['insurance_value'] = $detail->meta_value;
+			$ghn_order_detail['cod_amount'] += $detail->meta_value;
+			$ghn_order_detail['insurance_value'] += $detail->meta_value;
 		}
 	}
 }
@@ -85,7 +88,14 @@ $ghn_editable_fields = $ghn_status_chk->get_editable_fields(); ?>
 						
 						<h4 style="margin: 0;margin-bottom:.6em;margin-top:1em;">Ngày tạo</h4>
 						
-						<code><?php echo date('H:i d/m/Y', strtotime(@$ghn_order_detail['created_date'])); ?></code><br/>
+						<code>
+							<?php
+								if (!empty($ghn_order_detail['created_date'])) {
+									echo convertDateToUserTimeZone($ghn_order_detail['created_date']);
+								}
+							?>
+						</code>
+						<br/>
 					<?php } ?>
 					</td>
 				</tr>

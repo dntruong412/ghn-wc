@@ -18,6 +18,15 @@ function start_session() {
     }
 }
 
+function convertDateToUserTimeZone($dateString, $format = 'H:i d/m/Y') {
+    $defaultTimezone = date_default_timezone_get();
+    $userTimezone = 'Asia/Ho_Chi_Minh';
+    $date = new DateTime($dateString, new DateTimeZone($defaultTimezone));
+    $date->setTimeZone(new DateTimeZone($userTimezone));
+
+    return $date->format($format);
+}
+
 if (!class_exists('GHN_WC_Management')) {
     class GHN_WC_Management {
         /**
@@ -1144,8 +1153,7 @@ if (!class_exists('GHN_WC_Management')) {
                         )
                     );
                 }               
-            }else
-            if ($sub_action == 'update') {
+            } else if ($sub_action == 'update') {
                 $ghn_order_code = $this->ghn_get_ghn_order_code($post_id);
                 $ghn_order_detail = $ghn->get_order($ghn_order_code);               
                 
