@@ -10,6 +10,6 @@ Plugin providing GHN functions on Wordpress.
 2. Activate the plugin.
 3. Go to setting, add the `GHN token`, choose environment (Production, Test)
 
-### Changelog ==
+### Changelog
 1.0
 * Initial Release
