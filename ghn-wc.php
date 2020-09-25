@@ -60,8 +60,6 @@ if (!class_exists('GHN_WC_Management')) {
             
             // ajax
             add_action('wp_ajax_ghn_ajax_shop_create', array($this, 'ghn_ajax_shop_create'));
-            add_action('wp_ajax_ghn_ajax_get_districts', array($this, 'ghn_ajax_get_districts'));
-            add_action('wp_ajax_ghn_ajax_get_wards', array($this, 'ghn_ajax_get_wards'));
             add_action('wp_ajax_ghn_ajax_get_servicefees', array($this, 'ghn_ajax_get_servicefees'));
             add_action('wp_ajax_ghn_ajax_get_order_calc', array($this, 'ghn_ajax_get_order_calc'));
             add_action('wp_ajax_ghn_ajax_order', array($this, 'ghn_ajax_order'));
@@ -69,7 +67,13 @@ if (!class_exists('GHN_WC_Management')) {
             add_action('wp_ajax_ghn_ajax_order_return', array($this, 'ghn_ajax_order_return'));
             add_action('wp_ajax_ghn_ajax_order_delivery_again', array($this, 'ghn_ajax_order_delivery_again'));
             add_action('wp_ajax_ghn_ajax_print', array($this, 'ghn_ajax_print'));
+
+            add_action('wp_ajax_ghn_ajax_get_districts', array($this, 'ghn_ajax_get_districts'));
+            add_action('wp_ajax_nopriv_ghn_ajax_get_districts', array($this, 'ghn_ajax_get_districts'));
+            add_action('wp_ajax_ghn_ajax_get_wards', array($this, 'ghn_ajax_get_wards'));
+            add_action('wp_ajax_nopriv_ghn_ajax_get_wards', array($this, 'ghn_ajax_get_wards'));
             add_action('wp_ajax_ghn_ajax_update_shipping_methods', array($this, 'ghn_ajax_update_shipping_methods'));
+            add_action('wp_ajax_nopriv_ghn_ajax_update_shipping_methods', array($this, 'ghn_ajax_update_shipping_methods'));
 
             // Woo Hook in
             add_filter('woocommerce_checkout_fields', array($this, 'woo_custom_override_checkout_fields'));
@@ -133,14 +137,14 @@ if (!class_exists('GHN_WC_Management')) {
             $ghnAPI = new GHN_API();
             $ghnAPI->set_options($options);
 
-            $GHN = array(
+            wp_localize_script('ghn-checkout', 'GHN', array(
+                'ajax_url'          => admin_url('admin-ajax.php'),
                 'api_services'      => $ghnAPI->get_api_url() . 'shiip/public-api/v2/shipping-order/available-services',
                 'api_services_fees' => $ghnAPI->get_api_url() . 'shiip/public-api/v2/shipping-order/fee',
                 'token'             => @$options['ghn_token'],
                 'shop_id'           => @$options['ghn_shopid'],
                 'from_district'     => @$options['ghn_shopdistrict']
-            );
-            wp_localize_script('ghn-checkout', 'GHN', $GHN);
+            ));
         }
 
         function add_ghn_shipping_method( $methods ) {

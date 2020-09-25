@@ -1,4 +1,4 @@
-jQuery(document).ready(function($) {
+; (function($) {
     $('#billing_country_field').hide();
 
     $('#billing_district, #billing_ward').selectWoo();
@@ -7,67 +7,67 @@ jQuery(document).ready(function($) {
     reloadWards();
 
     function reloadDistricts() {
-        jQuery.ajax({
-            url: wc_cart_fragments_params.ajax_url,
+        $.ajax({
+            url: GHN.ajax_url,
             type: 'POST',
             dataType: 'json',
             data: {
                 action: 'ghn_ajax_get_districts'
             },
             success: function(data) {
-                jQuery('#billing_district').empty().selectWoo({
+                $('#billing_district').empty().selectWoo({
                     placeholder: "Select a district",
                     data: data.data.filter(function(district) {
                         return !!district.text;
                     })
                 })
-                jQuery('#billing_district').trigger('change');
+                $('#billing_district').trigger('change');
             }
         });
     }
 
     function reloadWards() {
-        jQuery('#billing_district').on('change', function() {
-            jQuery.ajax({
-                url: wc_cart_fragments_params.ajax_url,
+        $('#billing_district').on('change', function() {
+            $.ajax({
+                url: GHN.ajax_url,
                 type: 'POST',
                 dataType: 'json',
                 data: {
                     action: 'ghn_ajax_get_wards',
-                    district_id: jQuery('#billing_district').val()
+                    district_id: $('#billing_district').val()
                 },
                 success: function(data) {
-                    jQuery('#billing_ward').empty().selectWoo({
+                    $('#billing_ward').empty().selectWoo({
                         placeholder: "Select a ward",
                         data: data.data.filter(function(ward) {
                             return !!ward.text;
                         })
                     });
-                    jQuery('#billing_ward').trigger('change');
+                    $('#billing_ward').trigger('change');
                 }
             });
         });
 
-        jQuery('#billing_ward').on('change', function() {
+        $('#billing_ward').on('change', function() {
             reloadShippingFee();
         });
     }
 
     function reloadShippingFee() {
-        if (jQuery('#billing_district').val() == null || jQuery('#billing_ward').val() == null) {
+        if ($('#billing_district').val() == null || $('#billing_ward').val() == null) {
             return;
         }
 
         // reset address
-        var district = jQuery('#billing_district option:selected').text().split(' - ');
-        var ward = jQuery('#billing_ward option:selected').text();
-        var address1Text = jQuery('#billing_address_1_text').val();
+        var district = $('#billing_district option:selected').text().split(' - ');
+        var ward = $('#billing_ward option:selected').text();
+        var address1Text = $('#billing_address_1_text').val();
 
-        var to_district = parseInt(jQuery('#billing_district').val());
-        var to_ward_code = jQuery('#billing_ward').val();
+        var to_district = parseInt($('#billing_district').val());
+        var to_ward_code = $('#billing_ward').val();
 
-        jQuery('#billing_address_1').val(address1Text + ', ' + ward + ', ' + district.shift());
-        jQuery('#billing_city').val(district.join(' - '));
+        $('#billing_address_1').val(address1Text + ', ' + ward + ', ' + district.shift());
+        $('#billing_city').val(district.join(' - '));
 
         var settingsServices = {
             "url": GHN.api_services,
@@ -84,7 +84,7 @@ jQuery(document).ready(function($) {
             }),
         };
 
-        jQuery.ajax(settingsServices).done(function(servicesResponse) {
+        $.ajax(settingsServices).done(function(servicesResponse) {
             var validServices = [];
             for (var i = 0; i < servicesResponse.data.length; i++) {
                 if (servicesResponse.data[i].service_type_id == 0) {
@@ -113,11 +113,11 @@ jQuery(document).ready(function($) {
                         "coupon": null
                     }),
                 };
-                jQuery.ajax(settings).done(function(servicesFeesResponse) {
+                $.ajax(settings).done(function(servicesFeesResponse) {
                     validServices.push(Object.assign({}, servicesResponse.data[i], { data_fee: servicesFeesResponse.data }));
                 });
             }
-            jQuery.ajax({
+            $.ajax({
                 url: wc_cart_fragments_params.ajax_url,
                 type: 'POST',
                 dataType: 'json',
@@ -126,8 +126,8 @@ jQuery(document).ready(function($) {
                     data: validServices
                 }
             }).done(function() {
-                jQuery('body').trigger('update_checkout');
+                $('body').trigger('update_checkout');
             });
         });
     }
-});
+})(jQuery);
