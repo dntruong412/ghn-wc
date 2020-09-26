@@ -1,7 +1,7 @@
 ; (function($) {
     $('#billing_country_field').hide();
 
-    $('#billing_district, #billing_ward').selectWoo();
+    $('#billing_district, #billing_ward').select2();
 
     reloadDistricts();
     reloadWards();
@@ -15,7 +15,7 @@
                 action: 'ghn_ajax_get_districts'
             },
             success: function(data) {
-                $('#billing_district').empty().selectWoo({
+                $('#billing_district').empty().select2({
                     placeholder: "Select a district",
                     data: data.data.filter(function(district) {
                         return !!district.text;
@@ -37,7 +37,7 @@
                     district_id: $('#billing_district').val()
                 },
                 success: function(data) {
-                    $('#billing_ward').empty().selectWoo({
+                    $('#billing_ward').empty().select2({
                         placeholder: "Select a ward",
                         data: data.data.filter(function(ward) {
                             return !!ward.text;
